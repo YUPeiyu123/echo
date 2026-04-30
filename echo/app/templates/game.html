@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Play · Echo Escape{% endblock %}
+{% block content %}
+<section class="game-page">
+  <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+    <div>
+      <span class="eyebrow">Logged in as {{ current_user.username }}</span>
+      <h1 class="mb-0">Echo Escape</h1>
+    </div>
+    <div class="text-muted small">
+      Results are saved automatically after each win or loss.
+    </div>
+  </div>
+
+  <div class="game-layout">
+    <div class="game-shell">
+      <div class="game-top">
+        <div>
+          <strong id="missionTitle">Mission: Find the exit through sound</strong>
+          <div class="sub" id="missionSubtitle">Minimal white probes reveal the maze. Strong probes wake monsters.</div>
+        </div>
+        <div class="sub" id="fpsLabel">FPS: --</div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="game" aria-label="Echo Escape game canvas"></canvas>
+        <div id="overlay" class="overlay show">
+          <div class="dialog">
+            <h2 id="overlayTitle">Echo Escape</h2>
+            <p id="overlayText">
+              You cannot see the full maze. Press Space or E to create an echo.
+              Reveal the walls and traps, then reach the green exit.
+            </p>
+            <div class="dialog-actions">
+              <button id="startBtn" class="btn btn-echo">Start Game</button>
+              <button id="levelBtn" class="btn btn-outline-info">Next Level</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="stat"><div class="label">Level</div><div id="levelStat" class="value">1</div><div class="small-value" id="difficultyStat">Easy</div></div>
+        <div class="stat"><div class="label">Time</div><div id="timeStat" class="value">0.0s</div><div class="small-value">clear fast</div></div>
+        <div class="stat"><div class="label">Manual Echoes</div><div id="echoStat" class="value">0</div><div class="small-value">lower is better</div></div>
+        <div class="stat"><div class="label">Status</div><div id="statusStat" class="value">Ready</div><div class="small-value" id="hintStat">listen first</div></div>
+        <div class="stat"><div class="label">Saved Score</div><div id="savedStat" class="value">--</div><div class="small-value">server result</div></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Level Select</h2>
+        <select id="levelSelect" class="form-select mb-2"></select>
+        <div id="levelBest" class="small text-info">Best: --</div>
+      </div>
+
+      <div class="panel">
+        <h2>Controls</h2>
+        <div class="keys">
+          <div><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> or arrows to move</div>
+          <div><span class="key">Space</span><span class="key">E</span> strong probe</div>
+          <div><span class="key">P</span> pause</div>
+          <div><span class="key">Fast E/Space</span> soft probe: dim and safer</div>
+          <div><span class="key">R</span> restart</div>
+          <div><span class="key">M</span> sound on/off</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>My Summary</h2>
+        <div class="summary-grid">
+          <div><strong id="summaryWins">0</strong><span>Wins</span></div>
+          <div><strong id="summaryLosses">0</strong><span>Losses</span></div>
+          <div><strong id="summaryBest">--</strong><span>Best</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Course features</h2>
+        <ul class="mb-0 text-muted">
+          <li>Canvas game runs on the client with ray probes and monsters.</li>
+          <li>AJAX sends results to Flask.</li>
+          <li>SQLite stores history and leaderboard data.</li>
+          <li>Other users can view profiles and rankings.</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h2>Links</h2>
+        <div class="d-grid gap-2">
+          <a class="btn btn-outline-info" href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
+          <a class="btn btn-outline-light" href="{{ url_for('main.history') }}">My history</a>
+          <a class="btn btn-outline-light" href="{{ url_for('main.profile', username=current_user.username) }}">My profile</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

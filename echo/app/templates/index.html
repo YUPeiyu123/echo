@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Echo Escape · Home{% endblock %}
+{% block content %}
+<section class="hero-card p-4 p-lg-5">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <span class="eyebrow">Dark echo-location maze game</span>
+      <h1 class="display-4 fw-bold mt-2">Find the exit by sound, not sight.</h1>
+      <p class="lead text-muted">
+        Echo Escape is a web-based puzzle game where the player explores a hidden maze.
+        Sound pulses briefly reveal walls, traps and the exit. The web app saves every result
+        and ranks players by score, time and echo efficiency.
+      </p>
+      <div class="hero-metrics">
+        <div><strong>{{ total_players }}</strong><span>Players</span></div>
+        <div><strong>{{ total_attempts }}</strong><span>Attempts</span></div>
+        <div><strong>{{ total_clears }}</strong><span>Clears</span></div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        {% if current_user.is_authenticated %}
+          <a class="btn btn-echo btn-lg" href="{{ url_for('main.game') }}">Play now</a>
+        {% else %}
+          <a class="btn btn-echo btn-lg" href="{{ url_for('main.register') }}">Create account</a>
+          <a class="btn btn-outline-light btn-lg" href="{{ url_for('main.login') }}">Login</a>
+        {% endif %}
+        <a class="btn btn-outline-info btn-lg" href="{{ url_for('main.leaderboard') }}">View leaderboard</a>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="feature-panel">
+        <h2>Project requirements covered</h2>
+        <ul>
+          <li>Flask client-server architecture.</li>
+          <li>Registration, login and logout.</li>
+          <li>SQLite persistence for users and game records.</li>
+          <li>Leaderboard and public player profiles.</li>
+          <li>AJAX result saving from a JavaScript Canvas game.</li>
+          <li>CSRF protection and salted password hashes.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mt-4">
+  <h2 class="section-title">Recent clears</h2>
+  {% if recent_results %}
+    <div class="row g-3">
+      {% for result in recent_results %}
+        <div class="col-md-6 col-lg-4">
+          <div class="data-card">
+            <h3><a href="{{ url_for('main.profile', username=result.player.username) }}">{{ result.player.username }}</a></h3>
+            <p class="mb-1">Level {{ result.level }} · {{ "%.1f"|format(result.time_seconds) }}s · {{ result.echo_count }} echoes</p>
+            <strong>{{ result.score }} pts</strong>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No clears yet. Be the first player on the board.</p>
+  {% endif %}
+</section>
+{% endblock %}

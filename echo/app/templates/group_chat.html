@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} · Group Chat{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <span class="eyebrow">Group Chat</span>
+    <h1 class="mb-0">{{ group.name }}</h1>
+    <p class="text-muted mb-0">{{ members|length }} members</p>
+  </div>
+  <a class="btn btn-outline-light" href="{{ url_for('main.chat_index') }}">Back to Chat</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="chat-card">
+      <div id="groupMessages" class="chat-messages"></div>
+      <form id="groupChatForm" class="chat-form">
+        <input id="groupChatInput" class="form-control" maxlength="1000" placeholder="Type a group message...">
+        <button class="btn btn-echo" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="data-card mb-3">
+      <h2>Members</h2>
+      {% for member in members %}
+        <div class="online-row">
+          <a href="{{ url_for('main.profile', username=member.user.username) }}">{{ member.user.username }}</a>
+          <span class="text-muted small">{{ member.role }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="data-card">
+      <h2>Invite members</h2>
+      <form method="post" action="{{ url_for('main.invite_group_members', group_id=group.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <p class="text-muted small">Quick invite from followed users. Use Create Group page to search all users.</p>
+        <div class="select-list compact">
+          {% for user in following_users %}
+            <label class="select-row">
+              <input type="checkbox" name="member_ids" value="{{ user.id }}">
+              <span>{{ user.username }}</span>
+            </label>
+          {% else %}
+            <p class="text-muted">No followed users.</p>
+          {% endfor %}
+        </div>
+        <button class="btn btn-outline-info mt-2" type="submit">Invite selected</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GROUP_ID = {{ group.id }};
+</script>
+<script src="{{ url_for('static', filename='js/group_chat.js') }}"></script>
+{% endblock %}

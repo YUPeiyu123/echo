@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Register · Echo Escape{% endblock %}
+{% block content %}
+<div class="auth-card mx-auto">
+  <h1>Create account</h1>
+  <p class="text-muted">Register to save your results and appear on the leaderboard.</p>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.username.label(class="form-label") }}
+      {{ form.username(class="form-control", autocomplete="username") }}
+      {% for error in form.username.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control", autocomplete="email") }}
+      {% for error in form.email.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control", autocomplete="new-password") }}
+      {% for error in form.password.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.confirm_password.label(class="form-label") }}
+      {{ form.confirm_password(class="form-control", autocomplete="new-password") }}
+      {% for error in form.confirm_password.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+    </div>
+
+    {{ form.submit(class="btn btn-echo w-100") }}
+  </form>
+
+  <p class="mt-3 text-muted">Already have an account? <a href="{{ url_for('main.login') }}">Login here</a>.</p>
+</div>
+{% endblock %}

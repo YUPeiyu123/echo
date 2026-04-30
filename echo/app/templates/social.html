@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Community · Echo Escape{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <span class="eyebrow">Community Feed</span>
+    <h1 class="mb-0">Echo Circle</h1>
+    <p class="text-muted mb-0">Visitors can read posts. Logged-in users can post, comment, like, follow and chat.</p>
+  </div>
+  {% if current_user.is_authenticated %}
+    <a class="btn btn-outline-info" href="{{ url_for('main.chat_index') }}">Open Chat</a>
+  {% endif %}
+</div>
+
+<div class="social-layout">
+  <section>
+    {% if current_user.is_authenticated %}
+      <div class="data-card mb-3">
+        <h2>Create a post</h2>
+        <form method="post" action="{{ url_for('main.create_post') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <textarea class="form-control mb-2" name="content" rows="3" maxlength="800" placeholder="Share your game result, strategy, or thoughts..."></textarea>
+          <button class="btn btn-echo" type="submit">Post</button>
+        </form>
+      </div>
+
+      <div class="mb-3">
+        <a class="btn {% if feed_type == 'all' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='all') }}">All posts</a>
+        <a class="btn {% if feed_type == 'following' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='following') }}">Following</a>
+      </div>
+    {% else %}
+      <div class="data-card mb-3">
+        <h2>Read-only mode</h2>
+        <p class="text-muted mb-2">You can view posts without logging in. Login is required for comments, likes, follows and chat.</p>
+        <a class="btn btn-echo" href="{{ url_for('main.login') }}">Login to interact</a>
+      </div>
+    {% endif %}
+
+    {% for post in posts %}
+      <article id="post-{{ post.id }}" class="post-card mb-3">
+        <div class="post-header">
+          <div>
+            <h3><a href="{{ url_for('main.profile', username=post.author.username) }}">{{ post.author.username }}</a></h3>
+            <span>{{ post.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+          </div>
+          {% if current_user.is_authenticated and post.author_id != current_user.id %}
+            <form method="post" action="{{ url_for('main.follow_user', username=post.author.username) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-info" type="submit">Follow / Unfollow</button>
+            </form>
+          {% endif %}
+        </div>
+
+        <p class="post-content">{{ post.content }}</p>
+
+        <div class="post-actions">
+          <span>{{ post.like_count() }} likes</span>
+          <span>{{ post.comment_count() }} comments</span>
+          {% if current_user.is_authenticated %}
+            <form method="post" action="{{ url_for('main.like_post', post_id=post.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-light" type="submit">Like / Unlike</button>
+            </form>
+          {% else %}
+            <span class="text-muted small">Login required to like or comment</span>
+          {% endif %}
+        </div>
+
+        <div class="comments">
+          {% for comment in post.comments[-4:] %}
+            <div class="comment">
+              <strong><a href="{{ url_for('main.profile', username=comment.author.username) }}">{{ comment.author.username }}</a>:</strong>
+              <span>{{ comment.content }}</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if current_user.is_authenticated %}
+          <form method="post" action="{{ url_for('main.create_comment', post_id=post.id) }}" class="comment-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input class="form-control" name="content" maxlength="500" placeholder="Write a comment...">
+            <button class="btn btn-outline-info" type="submit">Comment</button>
+          </form>
+        {% endif %}
+      </article>
+    {% else %}
+      <div class="data-card">
+        <p class="text-muted mb-0">No posts yet.</p>
+      </div>
+    {% endfor %}
+  </section>
+
+  <aside class="side social-side">
+    <div class="panel">
+      <h2>Online now</h2>
+      <div id="onlineList">
+        {% for user in online_users %}
+          <div class="online-row">
+            <span class="online-dot"></span>
+            <a href="{{ url_for('main.profile', username=user.username) }}">{{ user.username }}</a>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">No online users.</p>
+        {% endfor %}
+      </div>
+      <p class="text-muted small mt-2 mb-0">Online status is updated by AJAX heartbeat.</p>
+    </div>
+
+    {% if current_user.is_authenticated %}
+      <div class="panel">
+        <h2>Suggested players</h2>
+        {% for user in suggested_users %}
+          <div class="suggest-row">
+            <a href="{{ url_for('main.profile', username=user.username) }}">{{ user.username }}</a>
+            <form method="post" action="{{ url_for('main.follow_user', username=user.username) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-info" type="submit">Follow</button>
+            </form>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">No suggestions.</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="panel">
+      <h2>How to Play</h2>
+      <p class="text-muted mb-1">WASD / arrows to move.</p>
+      <p class="text-muted mb-1">E / Space sends a strong probe.</p>
+      <p class="text-muted mb-1">Rapid E / Space sends a soft probe.</p>
+      <p class="text-muted mb-0">Strong probes wake monsters. Soft probes are safer but dimmer.</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_authenticated %}
+<script src="{{ url_for('static', filename='js/social.js') }}"></script>
+{% endif %}
+{% endblock %}

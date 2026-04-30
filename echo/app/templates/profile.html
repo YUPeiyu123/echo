@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }} · Echo Escape{% endblock %}
+{% block content %}
+<div class="profile-header data-card mb-4">
+  <div>
+    <span class="eyebrow">Player profile</span>
+    <h1>{{ user.username }}</h1>
+    <p class="text-muted mb-0">Joined {{ user.created_at.strftime("%Y-%m-%d") }}</p>
+  </div>
+  <div class="profile-stats">
+    <div><strong>{{ user.win_count() }}</strong><span>Wins</span></div>
+    <div><strong>{{ user.loss_count() }}</strong><span>Losses</span></div>
+    <div><strong>{{ user.total_likes() }}</strong><span>Likes</span></div>
+    <div><strong>{{ followers_count }}</strong><span>Followers</span></div>
+    <div><strong>{{ following_count }}</strong><span>Following</span></div>
+    <div><strong>{% if best %}{{ best.score }}{% else %}--{% endif %}</strong><span>Best score</span></div>
+  </div>
+</div>
+
+{% if current_user.is_authenticated and current_user.id != user.id %}
+<form method="post" action="{{ url_for('main.like_profile', username=user.username) }}" class="mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-echo" type="submit">
+    {% if liked_by_current_user %}Remove like{% else %}Like this player{% endif %}
+  </button>
+</form>
+{% endif %}
+
+
+{% if current_user.is_authenticated and current_user.id != user.id %}
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  <form method="post" action="{{ url_for('main.follow_user', username=user.username) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-outline-info" type="submit">
+      {% if is_following %}Unfollow{% else %}Follow{% endif %}
+    </button>
+  </form>
+  <a class="btn btn-outline-light" href="{{ url_for('main.chat_with', username=user.username) }}">Chat</a>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <h2>Best result</h2>
+      {% if best %}
+        <p>Level {{ best.level }}</p>
+        <p>{{ "%.1f"|format(best.time_seconds) }} seconds · {{ best.echo_count }} echoes</p>
+        <h3>{{ best.score }} pts</h3>
+      {% else %}
+        <p class="text-muted">No win yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="data-card">
+      <h2>Level progress</h2>
+      <div class="level-grid">
+        {% for level in range(1, 13) %}
+          <div class="level-chip {% if level in best_by_level %}cleared{% endif %}">
+            <strong>L{{ level }}</strong>
+            <span>{% if level in best_by_level %}{{ best_by_level[level].score }}{% else %}--{% endif %}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="data-card mt-4">
+  <h2>Recent games</h2>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead><tr><th>Result</th><th>Level</th><th>Time</th><th>Echoes</th><th>Score</th></tr></thead>
+      <tbody>
+        {% for result in recent %}
+          <tr>
+            <td>{{ result.result }}</td>
+            <td>{{ result.level }}</td>
+            <td>{{ "%.1f"|format(result.time_seconds) }}s</td>
+            <td>{{ result.echo_count }}</td>
+            <td>{{ result.score }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted">No records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

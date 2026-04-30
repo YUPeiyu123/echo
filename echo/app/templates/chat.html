@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ other.username }} · Echo Escape{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <span class="eyebrow">Private Chat</span>
+    <h1 class="mb-0">Chat with {{ other.username }}</h1>
+  </div>
+  <a class="btn btn-outline-light" href="{{ url_for('main.chat_index') }}">Back</a>
+</div>
+
+<div class="chat-card">
+  <div id="chatMessages" class="chat-messages"></div>
+  <form id="chatForm" class="chat-form">
+    <input id="chatInput" class="form-control" maxlength="1000" placeholder="Type a message...">
+    <button class="btn btn-echo" type="submit">Send</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.CHAT_USERNAME = {{ other.username|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

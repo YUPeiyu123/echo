@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Chat · Echo Escape{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <span class="eyebrow">Messages</span>
+    <h1 class="mb-0">Chat Centre</h1>
+    <p class="text-muted mb-0">Private chat, group chat, and the pinned AI Game Assistant.</p>
+  </div>
+  <a class="btn btn-echo" href="{{ url_for('main.create_group') }}">Create Group</a>
+</div>
+
+<section class="data-card mb-4 pinned-ai-card">
+  <div>
+    <span class="eyebrow">Pinned</span>
+    <h2>AI Game Assistant</h2>
+    <p class="text-muted mb-0">Ask short questions about gameplay, strategy, bugs, or project explanation.</p>
+  </div>
+  <a class="btn btn-echo" href="{{ url_for('main.ai_chat') }}">Chat with AI</a>
+</section>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="data-card">
+      <h2>Group Chats</h2>
+      {% for group in groups %}
+        {% set unread = group_unread_by_group.get(group.id, 0) %}
+        <div class="chat-list-row">
+          <div>
+            <strong>{{ group.name }}</strong>
+            <div class="text-muted small">{{ group.members|length }} members</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if unread > 0 %}
+              <span class="unread-pill">{{ "9+" if unread > 9 else unread }}</span>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.group_chat', group_id=group.id) }}">Open</a>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No groups yet. Create one and invite players.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="data-card">
+      <h2>Direct Messages</h2>
+      {% for user in users %}
+        {% set unread = direct_unread_by_user.get(user.id, 0) %}
+        <div class="chat-list-row">
+          <div>
+            <strong><a href="{{ url_for('main.profile', username=user.username) }}">{{ user.username }}</a></strong>
+            <div class="text-muted small">Last seen: {{ user.last_seen_at.strftime("%Y-%m-%d %H:%M") if user.last_seen_at else "unknown" }}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if unread > 0 %}
+              <span class="unread-pill">{{ "9+" if unread > 9 else unread }}</span>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.chat_with', username=user.username) }}">Chat</a>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No other users yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
