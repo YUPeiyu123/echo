@@ -146,6 +146,14 @@
 </div>
 {% endblock %}
 
+<a class="btn {% if feed_type == 'all' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='all') }}">All posts</a>
+
+<a class="btn {% if feed_type == 'following' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='following') }}">Following</a>
+
+<a class="btn {% if feed_type == 'popular' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='popular') }}">Popular</a>
+
+<a class="btn {% if feed_type == 'mine' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='mine') }}">My posts</a>
+
 {% block scripts %}
 {% if current_user.is_authenticated %}
 <script src="{{ url_for('static', filename='js/social.js') }}"></script>
