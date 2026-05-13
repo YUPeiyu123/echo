@@ -10,6 +10,9 @@
   {% if current_user.is_authenticated %}
     <a class="btn btn-outline-info" href="{{ url_for('main.chat_index') }}">Open Chat</a>
   {% endif %}
+  <form method="get" action="{{ url_for('main.social') }}" class="mb-3">
+  <input class="form-control" name="q" placeholder="Search posts or players...">
+</form>
 {% if current_user.is_authenticated and post.author_id == current_user.id %}
   <form method="post" action="{{ url_for('main.delete_post', post_id=post.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
