@@ -755,6 +755,15 @@ def group_chat(group_id):
         members=members,
         following_users=following_users
     )
+keyword = request.args.get("q", "").strip()
+
+if keyword:
+    query = query.join(User, SocialPost.author_id == User.id).filter(
+        db.or_(
+            SocialPost.content.ilike(f"%{keyword}%"),
+            User.username.ilike(f"%{keyword}%")
+        )
+    )
 
 @main.route("/groups/<int:group_id>/invite", methods=["POST"])
 @login_required
