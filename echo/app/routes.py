@@ -332,7 +332,35 @@ def my_summary():
 @main.route("/social")
 def social():
     feed_type = request.args.get("feed", "all")
-    query = SocialPost.query.order_by(SocialPost.created_at.desc())
+query = SocialPost.query.order_by(SocialPost.created_at.desc())
+
+if current_user.is_authenticated and feed_type == "following":
+    followed_ids = [
+        row.followed_id for row in Follow.query.filter_by(follower_id=current_user.id).all()
+    ]
+    followed_ids.append(current_user.id)
+    query = (
+        SocialPost.query
+        .filter(SocialPost.author_id.in_(followed_ids))
+        .order_by(SocialPost.created_at.desc())
+    )
+
+elif current_user.is_authenticated and feed_type == "mine":
+    query = (
+        SocialPost.query
+        .filter_by(author_id=current_user.id)
+        .order_by(SocialPost.created_at.desc())
+    )
+
+elif feed_type == "popular":
+    posts = SocialPost.query.order_by(SocialPost.created_at.desc()).limit(100).all()
+    posts = sorted(
+        posts,
+        key=lambda post: post.like_count() * 2 + post.comment_count(),
+        reverse=True
+    )[:50]
+else:
+    posts = query.limit(50).all()
 
     if current_user.is_authenticated and feed_type == "following":
         followed_ids = [
