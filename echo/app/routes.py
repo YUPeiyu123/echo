@@ -990,15 +990,22 @@ def delete_post(post_id):
 
     flash("Post deleted.", "info")
     return redirect(url_for("main.social"))
+@main.route("/social/comment/<int:comment_id>/delete", methods=["POST"])
+@login_required
+def delete_comment(comment_id):
+    comment = PostComment.query.get_or_404(comment_id)
+    post_id = comment.post_id
 
+    if comment.author_id != current_user.id:
+        flash("You can only delete your own comment.", "danger")
+        return redirect(url_for("main.social") + f"#post-{post_id}")
 
+    db.session.delete(comment)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
 
-
-
-
-
-
-
+    flash("Comment deleted.", "info")
+    return redirect(url_for("main.social") + f"#post-{post_id}")
 
 @main.route("/results/<int:result_id>/share", methods=["POST"])
 @login_required
