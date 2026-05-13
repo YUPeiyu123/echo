@@ -375,6 +375,13 @@ def social():
 @main.route("/social/post", methods=["POST"])
 @login_required
 def create_post():
+    db.session.add(post)
+db.session.flush()
+
+notify_mentions(
+    content,
+    url_for("main.social") + f"#post-{post.id}"
+)
     content = request.form.get("content", "").strip()
     if not content:
         flash("Post content cannot be empty.", "warning")
@@ -383,7 +390,14 @@ def create_post():
         flash("Post is too long. Please keep it under 800 characters.", "warning")
         return redirect(url_for("main.social"))
 
-    db.session.add(SocialPost(author_id=current_user.id, content=content))
+   post = SocialPost(author_id=current_user.id, content=content)
+db.session.add(post)
+db.session.flush()
+
+notify_mentions(
+    content,
+    url_for("main.social") + f"#post-{post.id}"
+)
     current_user.last_seen_at = datetime.now(timezone.utc)
     db.session.commit()
     flash("Post published.", "success")
