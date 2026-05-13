@@ -90,3 +90,21 @@
   </div>
 </div>
 {% endblock %}
+
+<div class="data-card mt-4">
+  <h2>Recent Community Posts</h2>
+
+  {% for post in recent_posts %}
+    <div class="mini-post">
+      <p class="mb-1">{{ post.content }}</p>
+      <div class="text-muted small">
+        {{ post.created_at.strftime("%Y-%m-%d %H:%M") }}
+        · {{ post.like_count() }} likes
+        · {{ post.comment_count() }} comments
+      </div>
+      <a class="small" href="{{ url_for('main.social') }}#post-{{ post.id }}">View post</a>
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">No community posts yet.</p>
+  {% endfor %}
+</div>
