@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import or_, and_
-
+import re
 from app import db
 from app.forms import RegisterForm, LoginForm
 from app.models import User, GameResult, PlayerLike, SocialPost, PostComment, PostLike, Follow, ChatMessage, ChatGroup, GroupMember, GroupMessage, GroupReadState, Notification
@@ -13,6 +13,23 @@ def create_notification(user_id, type_name, title, body, link=None, actor_id=Non
     """Create a notification unless the receiver is the actor."""
     if actor_id is not None and user_id == actor_id:
         return None
+def notify_mentions(content, link):
+    usernames = set(re.findall(r"@([A-Za-z0-9_]{3,32})", content))
+
+    if not usernames:
+        return
+
+    mentioned_users = User.query.filter(User.username.in_(usernames)).all()
+
+    for user in mentioned_users:
+        create_notification(
+            user_id=user.id,
+            actor_id=current_user.id,
+            type_name="mention",
+            title="You were mentioned",
+            body=current_user.username + " mentioned you in the community.",
+            link=link
+        )
 
     notification = Notification(
         user_id=user_id,
