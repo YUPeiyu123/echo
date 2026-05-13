@@ -975,6 +975,30 @@ def api_ai_chat():
             "source": "fallback_after_error"
         })
 
+@main.route("/social/post/<int:post_id>/delete", methods=["POST"])
+@login_required
+def delete_post(post_id):
+    post = SocialPost.query.get_or_404(post_id)
+
+    if post.author_id != current_user.id:
+        flash("You can only delete your own post.", "danger")
+        return redirect(url_for("main.social"))
+
+    db.session.delete(post)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Post deleted.", "info")
+    return redirect(url_for("main.social"))
+
+
+
+
+
+
+
+
+
 
 @main.route("/results/<int:result_id>/share", methods=["POST"])
 @login_required
