@@ -272,6 +272,23 @@ def social():
         total_users=total_users,
         online_users_count=online_users_count,
     )
+    def notify_mentions(content, link):
+    usernames = set(re.findall(r"@([A-Za-z0-9_]{3,32})", content))
+
+    if not usernames:
+        return
+
+    mentioned_users = User.query.filter(User.username.in_(usernames)).all()
+
+    for user in mentioned_users:
+        create_notification(
+            user_id=user.id,
+            actor_id=current_user.id,
+            type_name="mention",
+            title="You were mentioned",
+            body=current_user.username + " mentioned you in the community.",
+            link=link
+        )
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
