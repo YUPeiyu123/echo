@@ -173,6 +173,104 @@ def social():
         total_users=total_users,
         online_users_count=online_users_count,
     )
+@main.route("/social")
+def social():
+    feed_type = request.args.get("feed", "all")
+    keyword = request.args.get("q", "").strip()
+    sort_type = request.args.get("sort", "newest")
+    page = request.args.get("page", 1, type=int)
+
+    query = SocialPost.query
+
+    if keyword:
+        query = query.join(User, SocialPost.author_id == User.id).filter(
+            or_(
+                SocialPost.content.ilike(f"%{keyword}%"),
+                User.username.ilike(f"%{keyword}%")
+            )
+        )
+
+    if current_user.is_authenticated and feed_type == "following":
+        followed_ids = [
+            row.followed_id
+            for row in Follow.query.filter_by(follower_id=current_user.id).all()
+        ]
+        followed_ids.append(current_user.id)
+        query = query.filter(SocialPost.author_id.in_(followed_ids))
+
+    elif current_user.is_authenticated and feed_type == "mine":
+        query = query.filter_by(author_id=current_user.id)
+
+    posts_for_sorting = None
+
+    if feed_type == "popular":
+        posts_for_sorting = query.order_by(SocialPost.created_at.desc()).limit(100).all()
+        posts_for_sorting = sorted(
+            posts_for_sorting,
+            key=lambda post: post.like_count() * 2 + post.comment_count(),
+            reverse=True
+        )
+
+    if posts_for_sorting is not None:
+        posts = posts_for_sorting[:50]
+        pagination = None
+    else:
+        if sort_type == "oldest":
+            query = query.order_by(SocialPost.created_at.asc())
+        elif sort_type == "most_liked":
+            query = query.order_by(SocialPost.created_at.desc())
+        elif sort_type == "most_commented":
+            query = query.order_by(SocialPost.created_at.desc())
+        else:
+            query = query.order_by(SocialPost.created_at.desc())
+
+        pagination = query.paginate(page=page, per_page=10, error_out=False)
+        posts = pagination.items
+
+        if sort_type == "most_liked":
+            posts = sorted(posts, key=lambda post: post.like_count(), reverse=True)
+        elif sort_type == "most_commented":
+            posts = sorted(posts, key=lambda post: post.comment_count(), reverse=True)
+
+    online_cutoff = datetime.now(timezone.utc) - timedelta(minutes=2)
+    online_users = (
+        User.query
+        .filter(User.last_seen_at >= online_cutoff)
+        .order_by(User.last_seen_at.desc())
+        .limit(12)
+        .all()
+    )
+
+    suggested_users = []
+    if current_user.is_authenticated:
+        following_ids = {
+            row.followed_id
+            for row in Follow.query.filter_by(follower_id=current_user.id).all()
+        }
+        suggested_query = User.query.filter(User.id != current_user.id)
+        if following_ids:
+            suggested_query = suggested_query.filter(~User.id.in_(following_ids))
+        suggested_users = suggested_query.order_by(User.created_at.desc()).limit(8).all()
+
+    total_posts = SocialPost.query.count()
+    total_comments = PostComment.query.count()
+    total_users = User.query.count()
+    online_users_count = User.query.filter(User.last_seen_at >= online_cutoff).count()
+
+    return render_template(
+        "social.html",
+        posts=posts,
+        feed_type=feed_type,
+        keyword=keyword,
+        sort_type=sort_type,
+        pagination=pagination,
+        online_users=online_users,
+        suggested_users=suggested_users,
+        total_posts=total_posts,
+        total_comments=total_comments,
+        total_users=total_users,
+        online_users_count=online_users_count,
+    )
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
