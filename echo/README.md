@@ -382,3 +382,17 @@ python run.py
 ### Security reminder
 
 Do not upload `.env` to GitHub. The `.gitignore` file already includes `.env`, `instance/`, virtual environments and SQLite files.
+
+
+## External API Usage Notice
+
+This project uses the OpenAI API as an optional external service for the AI Game Assistant feature.
+
+The OpenAI API is only used when a valid `OPENAI_API_KEY` is configured in the local environment. The API key is not included in this repository and must not be uploaded to GitHub. According to OpenAI's API documentation, API keys should be treated as secrets and loaded securely from environment variables or a server-side key management service, not exposed in client-side code or public repositories. :contentReference[oaicite:0]{index=0}
+
+For local development, create a `.env` file based on `.env.example`:
+
+```env
+SECRET_KEY=....................................................................................................
+OPENAI_API_KEY=................................................................................................
+OPENAI_MODEL=..................................................................................................
