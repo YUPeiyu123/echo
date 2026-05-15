@@ -157,6 +157,34 @@ def history():
     )
     return render_template("history.html", results=results)
 
+
+
+@main.route("/results/<int:result_id>/share", methods=["POST"])
+@login_required
+def share_result(result_id):
+    result = GameResult.query.get_or_404(result_id)
+
+    if result.user_id != current_user.id:
+        flash("You can only share your own result.", "danger")
+        return redirect(url_for("main.history"))
+
+    content = (
+        f"I just played Echo Escape! "
+        f"Result: {result.result.upper()} | "
+        f"Level: {result.level} | "
+        f"Time: {result.time_seconds:.1f}s | "
+        f"Echoes: {result.echo_count} | "
+        f"Score: {result.score}"
+    )
+
+    post = SocialPost(author_id=current_user.id, content=content)
+    db.session.add(post)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Game result shared to the community.", "success")
+    return redirect(url_for("main.social") + f"#post-{post.id}")
+
 @main.route("/leaderboard")
 def leaderboard():
     wins = (
