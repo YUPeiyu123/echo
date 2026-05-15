@@ -14,6 +14,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
+    is_edited = db.Column(db.Boolean, default=False, nullable=False)
     last_seen_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     results = db.relationship(
