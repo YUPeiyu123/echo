@@ -37,7 +37,20 @@
     <div class="col-md-6">
       <input class="form-control" name="q" value="{{ keyword }}" placeholder="Search posts or players...">
     </div>
+{% if current_user.is_authenticated and post.author_id == current_user.id %}
+  <div class="post-owner-tools mb-3">
+    <form method="post" action="{{ url_for('main.edit_post', post_id=post.id) }}" class="mb-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <textarea class="form-control mb-2" name="content" maxlength="800">{{ post.content }}</textarea>
+      <button class="btn btn-sm btn-outline-info" type="submit">Update post</button>
+    </form>
 
+    <form method="post" action="{{ url_for('main.delete_post', post_id=post.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-outline-danger" type="submit">Delete post</button>
+    </form>
+  </div>
+{% endif %}
     <div class="col-md-3">
       <select class="form-select" name="sort">
         <option value="newest" {% if sort_type == 'newest' %}selected{% endif %}>Newest</option>
