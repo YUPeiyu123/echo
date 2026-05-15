@@ -255,6 +255,12 @@
         Next
       </a>
     {% endif %}
+    {% if current_user.is_authenticated and post.author_id != current_user.id %}
+  <form method="post" action="{{ url_for('main.follow_user', username=post.author.username) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-info" type="submit">Follow / Unfollow</button>
+  </form>
+{% endif %}
   </div>
 {% endif %}
 {% block scripts %}
