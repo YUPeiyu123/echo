@@ -769,7 +769,97 @@ def chat_index():
         direct_unread_by_user=direct_unread_by_user,
         group_unread_by_group=group_unread_by_group
     )
+@main.route("/social/post/<int:post_id>/edit", methods=["POST"])
+@login_required
+def edit_post(post_id):
+    post = SocialPost.query.get_or_404(post_id)
 
+    if post.author_id != current_user.id:
+        flash("You can only edit your own post.", "danger")
+        return redirect(url_for("main.social"))
+
+    content = request.form.get("content", "").strip()
+
+    if not content:
+        flash("Post content cannot be empty.", "warning")
+        return redirect(url_for("main.social") + f"#post-{post.id}")
+
+    if len(content) > 800:
+        flash("Post is too long. Please keep it under 800 characters.", "warning")
+        return redirect(url_for("main.social") + f"#post-{post.id}")
+
+    post.content = content
+    post.updated_at = datetime.now(timezone.utc)
+    post.is_edited = True
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Post updated.", "success")
+    return redirect(url_for("main.social") + f"#post-{post.id}")
+
+
+@main.route("/social/post/<int:post_id>/delete", methods=["POST"])
+@login_required
+def delete_post(post_id):
+    post = SocialPost.query.get_or_404(post_id)
+
+    if post.author_id != current_user.id:
+        flash("You can only delete your own post.", "danger")
+        return redirect(url_for("main.social"))
+
+    db.session.delete(post)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Post deleted.", "info")
+    return redirect(url_for("main.social"))
+
+
+@main.route("/social/comment/<int:comment_id>/edit", methods=["POST"])
+@login_required
+def edit_comment(comment_id):
+    comment = PostComment.query.get_or_404(comment_id)
+
+    if comment.author_id != current_user.id:
+        flash("You can only edit your own comment.", "danger")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    content = request.form.get("content", "").strip()
+
+    if not content:
+        flash("Comment cannot be empty.", "warning")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    if len(content) > 500:
+        flash("Comment is too long.", "warning")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    comment.content = content
+    comment.updated_at = datetime.now(timezone.utc)
+    comment.is_edited = True
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Comment updated.", "success")
+    return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+
+@main.route("/social/comment/<int:comment_id>/delete", methods=["POST"])
+@login_required
+def delete_comment(comment_id):
+    comment = PostComment.query.get_or_404(comment_id)
+    post_id = comment.post_id
+
+    if comment.author_id != current_user.id:
+        flash("You can only delete your own comment.", "danger")
+        return redirect(url_for("main.social") + f"#post-{post_id}")
+
+    db.session.delete(comment)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Comment deleted.", "info")
+    return redirect(url_for("main.social") + f"#post-{post_id}")
 @main.route("/chat/<username>")
 @login_required
 def chat_with(username):
