@@ -75,7 +75,17 @@ def get_total_unread_count(user_id):
 
 
 MAX_LEVEL = 12
+post = SocialPost(author_id=current_user.id, content=content)
+db.session.add(post)
+db.session.flush()
 
+notify_mentions(
+    content,
+    url_for("main.social") + f"#post-{post.id}"
+)
+
+current_user.last_seen_at = datetime.now(timezone.utc)
+db.session.commit()
 @main.route("/social")
 def social():
     feed_type = request.args.get("feed", "all")
