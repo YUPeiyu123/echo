@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import or_, and_
 import re
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from app import db
 from app.forms import RegisterForm, LoginForm
 from app.models import User, GameResult, PlayerLike, SocialPost, PostComment, PostLike, Follow, ChatMessage, ChatGroup, GroupMember, GroupMessage, GroupReadState, Notification
@@ -74,7 +75,17 @@ def get_total_unread_count(user_id):
 
 
 MAX_LEVEL = 12
+post = SocialPost(author_id=current_user.id, content=content)
+db.session.add(post)
+db.session.flush()
 
+notify_mentions(
+    content,
+    url_for("main.social") + f"#post-{post.id}"
+)
+
+current_user.last_seen_at = datetime.now(timezone.utc)
+db.session.commit()
 @main.route("/social")
 def social():
     feed_type = request.args.get("feed", "all")
@@ -271,6 +282,23 @@ def social():
         total_users=total_users,
         online_users_count=online_users_count,
     )
+    def notify_mentions(content, link):
+    usernames = set(re.findall(r"@([A-Za-z0-9_]{3,32})", content))
+
+    if not usernames:
+        return
+
+    mentioned_users = User.query.filter(User.username.in_(usernames)).all()
+
+    for user in mentioned_users:
+        create_notification(
+            user_id=user.id,
+            actor_id=current_user.id,
+            type_name="mention",
+            title="You were mentioned",
+            body=current_user.username + " mentioned you in the community.",
+            link=link
+        )
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -769,7 +797,97 @@ def chat_index():
         direct_unread_by_user=direct_unread_by_user,
         group_unread_by_group=group_unread_by_group
     )
+@main.route("/social/post/<int:post_id>/edit", methods=["POST"])
+@login_required
+def edit_post(post_id):
+    post = SocialPost.query.get_or_404(post_id)
 
+    if post.author_id != current_user.id:
+        flash("You can only edit your own post.", "danger")
+        return redirect(url_for("main.social"))
+
+    content = request.form.get("content", "").strip()
+
+    if not content:
+        flash("Post content cannot be empty.", "warning")
+        return redirect(url_for("main.social") + f"#post-{post.id}")
+
+    if len(content) > 800:
+        flash("Post is too long. Please keep it under 800 characters.", "warning")
+        return redirect(url_for("main.social") + f"#post-{post.id}")
+
+    post.content = content
+    post.updated_at = datetime.now(timezone.utc)
+    post.is_edited = True
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Post updated.", "success")
+    return redirect(url_for("main.social") + f"#post-{post.id}")
+
+
+@main.route("/social/post/<int:post_id>/delete", methods=["POST"])
+@login_required
+def delete_post(post_id):
+    post = SocialPost.query.get_or_404(post_id)
+
+    if post.author_id != current_user.id:
+        flash("You can only delete your own post.", "danger")
+        return redirect(url_for("main.social"))
+
+    db.session.delete(post)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Post deleted.", "info")
+    return redirect(url_for("main.social"))
+
+
+@main.route("/social/comment/<int:comment_id>/edit", methods=["POST"])
+@login_required
+def edit_comment(comment_id):
+    comment = PostComment.query.get_or_404(comment_id)
+
+    if comment.author_id != current_user.id:
+        flash("You can only edit your own comment.", "danger")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    content = request.form.get("content", "").strip()
+
+    if not content:
+        flash("Comment cannot be empty.", "warning")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    if len(content) > 500:
+        flash("Comment is too long.", "warning")
+        return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+    comment.content = content
+    comment.updated_at = datetime.now(timezone.utc)
+    comment.is_edited = True
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Comment updated.", "success")
+    return redirect(url_for("main.social") + f"#post-{comment.post_id}")
+
+
+@main.route("/social/comment/<int:comment_id>/delete", methods=["POST"])
+@login_required
+def delete_comment(comment_id):
+    comment = PostComment.query.get_or_404(comment_id)
+    post_id = comment.post_id
+
+    if comment.author_id != current_user.id:
+        flash("You can only delete your own comment.", "danger")
+        return redirect(url_for("main.social") + f"#post-{post_id}")
+
+    db.session.delete(comment)
+    current_user.last_seen_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("Comment deleted.", "info")
+    return redirect(url_for("main.social") + f"#post-{post_id}")
 @main.route("/chat/<username>")
 @login_required
 def chat_with(username):
