@@ -230,7 +230,13 @@
     My posts
   </a>
 </div>
-
+<div class="panel">
+  <h2>Community Stats</h2>
+  <p class="mb-1">Total posts: <strong>{{ total_posts }}</strong></p>
+  <p class="mb-1">Total comments: <strong>{{ total_comments }}</strong></p>
+  <p class="mb-1">Players: <strong>{{ total_users }}</strong></p>
+  <p class="mb-0">Online now: <strong>{{ online_users_count }}</strong></p>
+</div>
 <a class="btn {% if feed_type == 'all' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='all') }}">All posts</a>
 
 <a class="btn {% if feed_type == 'following' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='following') }}">Following</a>
