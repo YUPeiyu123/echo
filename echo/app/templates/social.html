@@ -238,7 +238,25 @@
 <a class="btn {% if feed_type == 'popular' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='popular') }}">Popular</a>
 
 <a class="btn {% if feed_type == 'mine' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='mine') }}">My posts</a>
+{% if pagination %}
+  <div class="d-flex justify-content-between mt-3">
+    {% if pagination.has_prev %}
+      <a class="btn btn-outline-light"
+         href="{{ url_for('main.social', page=pagination.prev_num, feed=feed_type, q=keyword, sort=sort_type) }}">
+        Previous
+      </a>
+    {% else %}
+      <span></span>
+    {% endif %}
 
+    {% if pagination.has_next %}
+      <a class="btn btn-outline-light"
+         href="{{ url_for('main.social', page=pagination.next_num, feed=feed_type, q=keyword, sort=sort_type) }}">
+        Next
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
 {% block scripts %}
 {% if current_user.is_authenticated %}
 <script src="{{ url_for('static', filename='js/social.js') }}"></script>
