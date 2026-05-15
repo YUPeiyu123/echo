@@ -169,6 +169,27 @@
   </aside>
 </div>
 {% endblock %}
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a class="btn {% if feed_type == 'all' %}btn-echo{% else %}btn-outline-light{% endif %}"
+     href="{{ url_for('main.social', feed='all', q=keyword, sort=sort_type) }}">
+    All posts
+  </a>
+
+  <a class="btn {% if feed_type == 'following' %}btn-echo{% else %}btn-outline-light{% endif %}"
+     href="{{ url_for('main.social', feed='following', q=keyword, sort=sort_type) }}">
+    Following
+  </a>
+
+  <a class="btn {% if feed_type == 'popular' %}btn-echo{% else %}btn-outline-light{% endif %}"
+     href="{{ url_for('main.social', feed='popular', q=keyword, sort=sort_type) }}">
+    Popular
+  </a>
+
+  <a class="btn {% if feed_type == 'mine' %}btn-echo{% else %}btn-outline-light{% endif %}"
+     href="{{ url_for('main.social', feed='mine', q=keyword, sort=sort_type) }}">
+    My posts
+  </a>
+</div>
 
 <a class="btn {% if feed_type == 'all' %}btn-echo{% else %}btn-outline-light{% endif %}" href="{{ url_for('main.social', feed='all') }}">All posts</a>
 
