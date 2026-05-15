@@ -66,6 +66,27 @@
           {% endif %}
         </div>
 
+
+        <form method="get" action="{{ url_for('main.social') }}" class="data-card mb-3">
+  <div class="row g-2">
+    <div class="col-md-6">
+      <input class="form-control" name="q" value="{{ keyword }}" placeholder="Search posts or players...">
+    </div>
+
+    <div class="col-md-3">
+      <select class="form-select" name="sort">
+        <option value="newest" {% if sort_type == 'newest' %}selected{% endif %}>Newest</option>
+        <option value="oldest" {% if sort_type == 'oldest' %}selected{% endif %}>Oldest</option>
+        <option value="most_liked" {% if sort_type == 'most_liked' %}selected{% endif %}>Most liked</option>
+        <option value="most_commented" {% if sort_type == 'most_commented' %}selected{% endif %}>Most commented</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <button class="btn btn-echo w-100" type="submit">Search</button>
+    </div>
+  </div>
+</form>
         <p class="post-content">{{ post.content }}</p>
 
         <div class="post-actions">
