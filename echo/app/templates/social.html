@@ -19,11 +19,18 @@
     <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
   </form>
 {% endif %}
-{% if current_user.is_authenticated and comment.author_id == current_user.id %}
-  <form method="post" action="{{ url_for('main.delete_comment', comment_id=comment.id) }}" class="d-inline">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="btn btn-sm btn-link text-danger p-0" type="submit">Delete</button>
-  </form>
+{% if current_user.is_authenticated and post.author_id != current_user.id %}
+  <div class="d-flex gap-2 flex-wrap">
+    <form method="post" action="{{ url_for('main.follow_user', username=post.author.username) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-outline-info" type="submit">Follow / Unfollow</button>
+    </form>
+
+    <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.chat_with', username=post.author.username) }}">
+      Message
+    </a>
+  </div>
+{% endif %}
 {% endif %}
   <form method="get" action="{{ url_for('main.social') }}" class="data-card mb-3">
   <div class="row g-2">
@@ -261,6 +268,12 @@
         Next
       </a>
     {% endif %}
+    {% if current_user.is_authenticated and post.author_id != current_user.id %}
+  <form method="post" action="{{ url_for('main.follow_user', username=post.author.username) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-info" type="submit">Follow / Unfollow</button>
+  </form>
+{% endif %}
   </div>
 {% endif %}
 {% block scripts %}
